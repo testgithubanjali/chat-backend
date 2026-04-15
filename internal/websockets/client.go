@@ -31,7 +31,9 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		// ✅ Save message to MongoDB
+		log.Println("Received:", msg.Content)
+
+		// ✅ Save to DB
 		collection := store.DB.Collection("messages")
 
 		_, err = collection.InsertOne(context.TODO(), models.Message{
@@ -41,11 +43,7 @@ func (c *Client) ReadPump() {
 			CreatedAt:  time.Now(),
 		})
 
-		if err != nil {
-			log.Println("Error inserting message:", err)
-		}
-
-		// ✅ Broadcast message
+		// ✅ Broadcast
 		c.Hub.Broadcast <- OutboundMessage{
 			SenderID:   msg.SenderID,
 			ReceiverID: msg.ReceiverID,
