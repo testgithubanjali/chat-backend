@@ -8,19 +8,36 @@ import (
 	"chat-backend/internal/websockets"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
 
-	// Connect MongoDB
 	store.ConnectDatabase()
 
-	// Start WebSocket Hub
 	hub := websockets.NewHub()
 	go hub.Run()
 
-	// Start server
 	e := echo.New()
+
+	// ✅ CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			"http://localhost:3001",
+			"http://localhost",
+		},
+		AllowMethods: []string{
+			echo.GET,
+			echo.POST,
+			echo.PUT,
+			echo.DELETE,
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+		},
+	}))
 
 	handlers.RegisterRoutes(e, hub)
 

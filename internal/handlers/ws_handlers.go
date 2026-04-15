@@ -60,7 +60,6 @@ func RegisterRoutes(e *echo.Echo, hub *websockets.Hub) {
 		return nil
 	})
 
-	// ✅ Get chat history
 	e.GET("/messages/:user_id", func(c echo.Context) error {
 
 		userID := c.Param("user_id")
@@ -80,7 +79,8 @@ func RegisterRoutes(e *echo.Echo, hub *websockets.Hub) {
 		}
 		defer cursor.Close(context.TODO())
 
-		var msgs []models.Message
+		// ✅ IMPORTANT FIX
+		msgs := []models.Message{}
 
 		for cursor.Next(context.TODO()) {
 			var msg models.Message
