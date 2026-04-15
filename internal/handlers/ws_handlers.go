@@ -1,14 +1,16 @@
-
 package handlers
 
 import (
+	"context"
+	"net/http"
+
 	"chat-backend/internal/models"
 	"chat-backend/internal/store"
 	"chat-backend/internal/websockets"
-	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"github.com/gorilla/websocket"
+	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var upgrader = websocket.Upgrader{
@@ -47,15 +49,35 @@ func RegisterRoutes(e *echo.Echo, hub *websockets.Hub) {
 		return nil
 	})
 
-	// Get chat history
+	// ✅ Get chat history (MongoDB)
 	e.GET("/messages/:user_id", func(c echo.Context) error {
+
 		userID := c.Param("user_id")
 
+		collection := store.DB.Collection("messages")
+
+		filter := bson.M{
+			"$or": []bson.M{
+				{"sender_id": userID},
+				{"receiver_id": userID},
+			},
+		}
+
+		cursor, err := collection.Find(context.TODO(), filter)
+		if err != nil {
+			return err
+		}
+		defer cursor.Close(context.TODO())
+
 		var msgs []models.Message
-		store.DB.Where(
-			"sender_id = ? OR receiver_id = ?",
-			userID, userID,
-		).Order("created_at asc").Find(&msgs)
+
+		for cursor.Next(context.TODO()) {
+			var msg models.Message
+			if err := cursor.Decode(&msg); err != nil {
+				return err
+			}
+			msgs = append(msgs, msg)
+		}
 
 		return c.JSON(http.StatusOK, msgs)
 	})

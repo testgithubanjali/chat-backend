@@ -1,8 +1,4 @@
 package websockets
-import (
-	"chat-backend/internal/models"
-	"chat-backend/internal/store"
-)
 
 type Hub struct {
 	Clients    map[string]*Client
@@ -23,8 +19,9 @@ func NewHub() *Hub {
 func (h *Hub) Run() {
 	for {
 		select {
+
 		case client := <-h.Register:
-			h.Clients[client.ID] = client   // ✅ FIX
+			h.Clients[client.ID] = client
 
 		case client := <-h.Unregister:
 			if _, ok := h.Clients[client.ID]; ok {
