@@ -21,13 +21,24 @@ var upgrader = websocket.Upgrader{
 
 func RegisterRoutes(e *echo.Echo, hub *websockets.Hub) {
 
-	e.GET("/", func(c echo.Context) error {
-		return c.File("web/index.html")
+	// ✅ Health check
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Server is running 🚀")
 	})
 
+	// ✅ Serve frontend (optional)
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Chat Backend Running")
+	})
+
+	// ✅ WebSocket endpoint
 	e.GET("/ws", func(c echo.Context) error {
 
 		userID := c.QueryParam("user_id")
+
+		if userID == "" {
+			return c.String(http.StatusBadRequest, "user_id required")
+		}
 
 		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
@@ -49,7 +60,7 @@ func RegisterRoutes(e *echo.Echo, hub *websockets.Hub) {
 		return nil
 	})
 
-	// ✅ Get chat history (MongoDB)
+	// ✅ Get chat history
 	e.GET("/messages/:user_id", func(c echo.Context) error {
 
 		userID := c.Param("user_id")

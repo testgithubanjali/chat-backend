@@ -1,19 +1,11 @@
-version: "3.8"
-
 services:
   backend:
-    build: ./chat-backend
+    build: .
     ports:
       - "8080:8080"
     depends_on:
       - mongo
 
-  frontend:
-    build: ./chat-frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
 
   mongo:
     image: mongo:6
