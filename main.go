@@ -1,22 +1,26 @@
 package main
-
 import (
 	"log"
-	"net/http"
-
+	"os"
 	"chat-backend/internal/handlers"
-	"chat-backend/internal/websocket"
+	"github.com/gin-gonic/gin"
 )
-
 func main() {
-	hub := websocket.NewHub()
+	os.Setenv("DB_HOST", "localhost")
+	os.Setenv("DB_PORT", "5432")
+	os.Setenv("DB_USER", "postgres")
+	os.Setenv("DB_PASSWORD", "1234")
+	os.Setenv("DB_NAME", "testdb")
 
+
+	store.ConnectDatabase()
+	store.DB.AutoMigrate(&websockets.OutboundMessage{})
+	hub := websockets.NewHub()
 	go hub.Run()
-
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		handlers.HandleWebSocket(hub, w, r)
-	})
-
-	log.Println("Server started at :8080")
-	http.ListenAndServe(":8080", nil)
-}
+	e:= echo.New()
+	
+	r := gin.Default()
+	handlers.RegisterRoutes(e, hub)
+	log.Println("Server running on port 8080")
+ e.Logger.Fatal(e.Start(":8080"))
+	}

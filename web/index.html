@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 400px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .message {
+            margin: 5px 0;
+        }
+
+        .input-area {
+            display: flex;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-bottom-left-radius: 10px;
+        }
+
+        .input-area button {
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-bottom-right-radius: 10px;
+        }
+
+        .input-area button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Real-Time Chat</div>
+
+    <div id="chatBox" class="chat-box"></div>
+
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    // Connect to WebSocket (change URL based on your backend)
+    const socket = new WebSocket("ws://localhost:8080/ws");
+
+    const chatBox = document.getElementById("chatBox");
+
+    // Receive message
+    socket.onmessage = function(event) {
+        const msg = document.createElement("div");
+        msg.classList.add("message");
+        msg.textContent = event.data;
+        chatBox.appendChild(msg);
+
+        // Auto scroll
+        chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    // Send message
+    function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const message = input.value;
+
+        if (message.trim() !== "") {
+            socket.send(message);
+            input.value = "";
+        }
+    }
+
+    // Optional: handle connection open
+    socket.onopen = function() {
+        console.log("Connected to server");
+    };
+
+    socket.onclose = function() {
+        console.log("Disconnected from server");
+    };
+</script>
+
+</body>
+</html>
